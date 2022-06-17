@@ -1,25 +1,62 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import Info from './components/info';
+import Button from './components/button';
+import Weather from './components/weather';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+const API_KEY = 'bd7235618e6918c008eb50421ff915fb';
+
+
+
+class App extends React.Component {
+  state = {
+    city: undefined,
+    temp: undefined,
+    sunrise: undefined,
+    sunset: undefined,
+  }
+
+  gettingWeather= async (e) => {
+    e.preventDefault();
+    const api_url = await fetch (`https://api.openweathermap.org/data/2.5/weather?q=Chelyabinsk&appid=${API_KEY}`);
+    const data = await api_url.json();
+  
+    let temp = data.main.temp;
+    let tempFToCel = Math.floor(temp - 273.15);
+
+    function timeConverter(UNIX_timestamp){
+      let a = new Date(UNIX_timestamp * 1000);
+      let hour = a.getHours();
+      let min = "0" + a.getMinutes();
+      let sec = "0" + a.getSeconds();
+      let time = hour + ':' + min.substr(-2);
+      return time;
+    }
+    let sunset = data.sys.sunset,
+        sunrise = data.sys.sunrise;
+    let sunset_date = timeConverter(sunset);
+    let sunrise_date = timeConverter(sunrise); 
+
+    this.setState ({
+      city: data.name,
+      temp: tempFToCel,
+      sunrise: sunrise_date,
+      sunset: sunset_date,
+    });
+  }
+
+  render () {
+    return (
+      <div>
+        <Info />
+        <Button weatherfunc = {this.gettingWeather}/>
+        <Weather 
+        city = {this.state.city}
+        temp = {this.state.temp}
+        sunrise = {this.state.sunrise}
+        sunset = {this.state.sunset}
+        />
+      </div>
+    );
+  }
 }
-
 export default App;
